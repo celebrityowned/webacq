@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Reco Social – Choose a Game</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #EDEFFA;
+      color: #1A1A2E;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 430px;
+      display: flex;
+      flex-direction: column;
+      padding: 0 20px;
+      flex: 1;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      padding: 16px 0;
+      gap: 8px;
+    }
+
+    .back-btn {
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: none;
+      border: none;
+      cursor: pointer;
+      border-radius: 50%;
+      -webkit-tap-highlight-color: transparent;
+      transition: background 0.2s;
+    }
+
+    .back-btn:active {
+      background: rgba(0,0,0,0.05);
+    }
+
+    .back-btn svg {
+      width: 24px;
+      height: 24px;
+    }
+
+    .page-title {
+      font-size: 20px;
+      font-weight: 700;
+      line-height: 1.3;
+      text-align: center;
+      flex: 1;
+      padding-right: 40px; /* offset for back button centering */
+    }
+
+    /* Game Cards */
+    .game-cards {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-top: 8px;
+    }
+
+    .game-card {
+      background: #FFFFFF;
+      border-radius: 20px;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .game-card:active {
+      transform: scale(0.98);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+
+    .game-icon {
+      width: 100px;
+      height: 100px;
+      border-radius: 18px;
+      flex-shrink: 0;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+      text-align: center;
+      line-height: 1.2;
+      padding: 8px;
+    }
+
+    .game-icon--solitaire-bounty {
+      background: linear-gradient(135deg, #5B3A9E, #7C4DFF);
+    }
+
+    .game-icon--spin-orb {
+      background: linear-gradient(135deg, #C62828, #FF5252);
+    }
+
+    .game-icon--solitaire-wild {
+      background: linear-gradient(135deg, #1B5E20, #4CAF50);
+    }
+
+    .game-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .game-earnings {
+      font-size: 18px;
+      font-weight: 700;
+      color: #2EAD60;
+      line-height: 1.2;
+    }
+
+    .game-name {
+      font-size: 15px;
+      font-weight: 500;
+      color: #5A5A7A;
+    }
+
+    .get-now-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 8px;
+      align-self: flex-end;
+      padding: 10px 22px;
+      background: #2EAD60;
+      color: #FFFFFF;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      border: none;
+      border-radius: 24px;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: background 0.2s, transform 0.15s;
+    }
+
+    .get-now-btn:active {
+      background: #259B53;
+      transform: scale(0.96);
+    }
+
+    .get-now-btn svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    /* Countdown Timer */
+    .countdown-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 32px;
+      gap: 16px;
+    }
+
+    .timer-display {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .timer-digit-group {
+      display: flex;
+      gap: 3px;
+    }
+
+    .timer-digit {
+      width: 36px;
+      height: 48px;
+      background: #1A1A2E;
+      color: #FFFFFF;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .timer-colon {
+      font-size: 26px;
+      font-weight: 800;
+      color: #1A1A2E;
+      padding: 0 2px;
+    }
+
+    /* Bonus Offer */
+    .bonus-card {
+      background: #E8F9EE;
+      border-radius: 16px;
+      padding: 16px 20px;
+      margin-top: 16px;
+      margin-bottom: 32px;
+    }
+
+    .bonus-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .bonus-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .bonus-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 2px solid #2EAD60;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #2EAD60;
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .bonus-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #1A1A2E;
+    }
+
+    .bonus-amount {
+      font-size: 18px;
+      font-weight: 700;
+      color: #2EAD60;
+    }
+
+    .bonus-description {
+      font-size: 14px;
+      color: #5A5A7A;
+      line-height: 1.5;
+    }
+
+    /* Timer expired state */
+    .timer-expired .timer-digit {
+      background: #9E9E9E;
+    }
+
+    .bonus-card.expired {
+      background: #F5F5F5;
+      opacity: 0.6;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <button class="back-btn" id="back-btn" aria-label="Go back">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#1A1A2E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+      </button>
+      <h1 class="page-title">To get started, choose from one of these 3 games.</h1>
+    </div>
+
+    <!-- Game Cards -->
+    <div class="game-cards">
+      <!-- Solitaire Bounty -->
+      <div class="game-card">
+        <div class="game-icon game-icon--solitaire-bounty">
+          Solitaire<br>Bounty
+        </div>
+        <div class="game-info">
+          <span class="game-earnings">Earn up to $2,835</span>
+          <span class="game-name">Solitaire Bounty</span>
+          <button class="get-now-btn" data-game="solitaire-bounty">
+            Get Now
+            <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="1" y1="13" x2="13" y2="1"/>
+              <polyline points="4 1 13 1 13 10"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Spin Orb Cyclone -->
+      <div class="game-card">
+        <div class="game-icon game-icon--spin-orb">
+          777<br>Slot
+        </div>
+        <div class="game-info">
+          <span class="game-earnings">Earn up to $450</span>
+          <span class="game-name">Spin Orb Cyclone</span>
+          <button class="get-now-btn" data-game="spin-orb-cyclone">
+            Get Now
+            <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="1" y1="13" x2="13" y2="1"/>
+              <polyline points="4 1 13 1 13 10"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Solitaire Wild -->
+      <div class="game-card">
+        <div class="game-icon game-icon--solitaire-wild">
+          Solitaire<br>Wild
+        </div>
+        <div class="game-info">
+          <span class="game-earnings">Earn up to $1,555</span>
+          <span class="game-name">Solitaire Wild</span>
+          <button class="get-now-btn" data-game="solitaire-wild">
+            Get Now
+            <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="1" y1="13" x2="13" y2="1"/>
+              <polyline points="4 1 13 1 13 10"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Countdown Timer -->
+    <div class="countdown-section" id="countdown-section">
+      <div class="timer-display" id="timer-display">
+        <div class="timer-digit-group">
+          <div class="timer-digit" id="d-m1">0</div>
+          <div class="timer-digit" id="d-m2">0</div>
+        </div>
+        <span class="timer-colon">:</span>
+        <div class="timer-digit-group">
+          <div class="timer-digit" id="d-s1">3</div>
+          <div class="timer-digit" id="d-s2">0</div>
+        </div>
+      </div>
+
+      <!-- Bonus Offer -->
+      <div class="bonus-card" id="bonus-card">
+        <div class="bonus-header">
+          <div class="bonus-label">
+            <div class="bonus-icon">$</div>
+            <span class="bonus-title">Bonus Offer</span>
+          </div>
+          <span class="bonus-amount">+$3</span>
+        </div>
+        <p class="bonus-description">
+          Start your first game within the next 30 seconds to receive a cash bonus.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Countdown Timer Logic
+    const TOTAL_SECONDS = 30;
+    let remaining = TOTAL_SECONDS;
+    let timerInterval = null;
+
+    const dm1 = document.getElementById('d-m1');
+    const dm2 = document.getElementById('d-m2');
+    const ds1 = document.getElementById('d-s1');
+    const ds2 = document.getElementById('d-s2');
+    const timerDisplay = document.getElementById('timer-display');
+    const bonusCard = document.getElementById('bonus-card');
+    const countdownSection = document.getElementById('countdown-section');
+
+    function updateDisplay() {
+      const mins = Math.floor(remaining / 60);
+      const secs = remaining % 60;
+      const mStr = String(mins).padStart(2, '0');
+      const sStr = String(secs).padStart(2, '0');
+
+      dm1.textContent = mStr[0];
+      dm2.textContent = mStr[1];
+      ds1.textContent = sStr[0];
+      ds2.textContent = sStr[1];
+    }
+
+    function startTimer() {
+      updateDisplay();
+      timerInterval = setInterval(() => {
+        remaining--;
+        updateDisplay();
+
+        if (remaining <= 0) {
+          clearInterval(timerInterval);
+          countdownSection.classList.add('timer-expired');
+          bonusCard.classList.add('expired');
+        }
+      }, 1000);
+    }
+
+    startTimer();
+
+    // Back button
+    document.getElementById('back-btn').addEventListener('click', () => {
+      window.location.href = 'screen1-landing.html';
+    });
+
+    // Get Now buttons – navigate to app store / deep link, then go to screen 3
+    document.querySelectorAll('.get-now-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const game = btn.getAttribute('data-game');
+        // In production: trigger app store redirect or deep link
+        // For prototype: navigate to screen 3
+        window.location.href = 'screen3-download.html';
+      });
+    });
+  </script>
+</body>
+</html>
