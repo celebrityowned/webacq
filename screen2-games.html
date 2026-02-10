@@ -528,7 +528,7 @@
       });
 
       // Emulate webhook arriving after 3-4 seconds
-      const delay = 3000 + Math.random() * 1000; // 3-4s
+      const delay = 5500 + Math.random() * 1000; // ~6s
       webhookTimeout = setTimeout(() => {
         enterVerifiedState();
       }, delay);
