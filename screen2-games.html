@@ -71,12 +71,22 @@
       align-items: center;
       gap: 16px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.3s ease;
     }
 
     .game-card:active {
       transform: scale(0.98);
       box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+
+    .game-card.dimmed {
+      opacity: 0.4;
+      pointer-events: none;
+    }
+
+    .game-card.selected {
+      border: 2px solid #3B6CE2;
+      box-shadow: 0 2px 12px rgba(59,108,226,0.15);
     }
 
     .game-icon {
@@ -155,6 +165,59 @@
     .get-now-btn svg {
       width: 14px;
       height: 14px;
+    }
+
+    /* Pending status badge (replaces Get Now button) */
+    .pending-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 8px;
+      align-self: flex-end;
+      padding: 10px 20px;
+      background: #FFF3E0;
+      color: #E65100;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      border: none;
+      border-radius: 24px;
+    }
+
+    .pending-spinner {
+      width: 16px;
+      height: 16px;
+      border: 2.5px solid #FFCC80;
+      border-top-color: #E65100;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Verified badge (after webhook) */
+    .verified-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 8px;
+      align-self: flex-end;
+      padding: 10px 20px;
+      background: #E8F5E9;
+      color: #2E7D32;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      border: none;
+      border-radius: 24px;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.9); }
+      to { opacity: 1; transform: scale(1); }
     }
 
     /* Countdown Timer */
@@ -293,13 +356,13 @@
   <div class="container">
     <!-- Header -->
     <div class="header">
-      <h1 class="page-title">To get started, choose from one of these 3 games.</h1>
+      <h1 class="page-title" id="page-title">To get started, choose from one of these 3 games.</h1>
     </div>
 
     <!-- Game Cards -->
-    <div class="game-cards">
+    <div class="game-cards" id="game-cards">
       <!-- Solitaire Bounty -->
-      <div class="game-card">
+      <div class="game-card" data-game="solitaire-bounty">
         <div class="game-icon game-icon--solitaire-bounty">
           Solitaire<br>Bounty
         </div>
@@ -317,7 +380,7 @@
       </div>
 
       <!-- Spin Orb Cyclone -->
-      <div class="game-card">
+      <div class="game-card" data-game="spin-orb-cyclone">
         <div class="game-icon game-icon--spin-orb">
           777<br>Slot
         </div>
@@ -335,7 +398,7 @@
       </div>
 
       <!-- Solitaire Wild -->
-      <div class="game-card">
+      <div class="game-card" data-game="solitaire-wild">
         <div class="game-icon game-icon--solitaire-wild">
           Solitaire<br>Wild
         </div>
@@ -384,7 +447,19 @@
   </div>
 
   <script>
-    // Countdown Timer Logic
+    // ---- State ----
+    // States: 'choose' | 'pending' | 'verified'
+    let pageState = 'choose';
+    let selectedGame = null;
+    let webhookTimeout = null;
+
+    // ---- DOM refs ----
+    const pageTitle = document.getElementById('page-title');
+    const gameCards = document.querySelectorAll('.game-card');
+    const countdownSection = document.getElementById('countdown-section');
+    const bonusCard = document.getElementById('bonus-card');
+
+    // ---- Countdown Timer ----
     const TOTAL_SECONDS = 30;
     let remaining = TOTAL_SECONDS;
     let timerInterval = null;
@@ -393,16 +468,12 @@
     const dm2 = document.getElementById('d-m2');
     const ds1 = document.getElementById('d-s1');
     const ds2 = document.getElementById('d-s2');
-    const timerDisplay = document.getElementById('timer-display');
-    const bonusCard = document.getElementById('bonus-card');
-    const countdownSection = document.getElementById('countdown-section');
 
-    function updateDisplay() {
+    function updateTimerDisplay() {
       const mins = Math.floor(remaining / 60);
       const secs = remaining % 60;
       const mStr = String(mins).padStart(2, '0');
       const sStr = String(secs).padStart(2, '0');
-
       dm1.textContent = mStr[0];
       dm2.textContent = mStr[1];
       ds1.textContent = sStr[0];
@@ -410,11 +481,10 @@
     }
 
     function startTimer() {
-      updateDisplay();
+      updateTimerDisplay();
       timerInterval = setInterval(() => {
         remaining--;
-        updateDisplay();
-
+        updateTimerDisplay();
         if (remaining <= 0) {
           clearInterval(timerInterval);
           countdownSection.classList.add('timer-expired');
@@ -425,15 +495,107 @@
 
     startTimer();
 
-    // Get Now buttons – navigate to app store / deep link, then go to screen 3
+    // ---- App Store URL (generic, for emulation) ----
+    // Opens a real App Store listing so the demo feels authentic
+    const APP_STORE_URL = 'https://apps.apple.com/app/id1614730313';
+
+    // ---- Switch to "Install Pending" state ----
+    function enterPendingState() {
+      pageState = 'pending';
+      pageTitle.textContent = 'Install pending...';
+
+      // Hide timer/bonus section
+      countdownSection.style.display = 'none';
+      if (timerInterval) clearInterval(timerInterval);
+
+      gameCards.forEach(card => {
+        const cardGame = card.getAttribute('data-game');
+        const btn = card.querySelector('.get-now-btn');
+
+        if (cardGame === selectedGame) {
+          // Selected card: show pending badge
+          card.classList.add('selected');
+          if (btn) {
+            const pending = document.createElement('div');
+            pending.className = 'pending-badge';
+            pending.innerHTML = '<div class="pending-spinner"></div> Install Pending';
+            btn.replaceWith(pending);
+          }
+        } else {
+          // Other cards: dim them
+          card.classList.add('dimmed');
+        }
+      });
+
+      // Emulate webhook arriving after 3-4 seconds
+      const delay = 3000 + Math.random() * 1000; // 3-4s
+      webhookTimeout = setTimeout(() => {
+        enterVerifiedState();
+      }, delay);
+    }
+
+    // ---- Switch to "Verified" state, then advance ----
+    function enterVerifiedState() {
+      pageState = 'verified';
+      pageTitle.textContent = 'Game installed!';
+
+      // Swap pending badge → verified badge on the selected card
+      const selectedCard = document.querySelector(`.game-card[data-game="${selectedGame}"]`);
+      if (selectedCard) {
+        const pendingBadge = selectedCard.querySelector('.pending-badge');
+        if (pendingBadge) {
+          const verified = document.createElement('div');
+          verified.className = 'verified-badge';
+          verified.innerHTML = `
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#2E7D32" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3 8 6.5 11.5 13 4.5"/>
+            </svg>
+            Installed
+          `;
+          pendingBadge.replaceWith(verified);
+        }
+      }
+
+      // Advance to screen 3 after a beat
+      setTimeout(() => {
+        window.location.href = 'screen3-download.html';
+      }, 1200);
+    }
+
+    // ---- "Get Now" click: open app store, mark selected game ----
     document.querySelectorAll('.get-now-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        const game = btn.getAttribute('data-game');
-        // In production: trigger app store redirect or deep link
-        // For prototype: navigate to screen 3
-        window.location.href = 'screen3-download.html';
+        selectedGame = btn.getAttribute('data-game');
+        sessionStorage.setItem('selectedGame', selectedGame);
+        sessionStorage.setItem('awaitingReturn', 'true');
+
+        // Open app store in a new tab (mobile will open App Store app)
+        window.open(APP_STORE_URL, '_blank');
       });
     });
+
+    // ---- Detect return from app store via Page Visibility API ----
+    document.addEventListener('visibilitychange', () => {
+      if (
+        document.visibilityState === 'visible' &&
+        sessionStorage.getItem('awaitingReturn') === 'true' &&
+        pageState === 'choose'
+      ) {
+        sessionStorage.removeItem('awaitingReturn');
+        selectedGame = sessionStorage.getItem('selectedGame');
+        enterPendingState();
+      }
+    });
+
+    // ---- Handle page reload while in pending state ----
+    if (sessionStorage.getItem('awaitingReturn') === 'true') {
+      // User reloaded while app store was open — treat as return
+      selectedGame = sessionStorage.getItem('selectedGame');
+      if (selectedGame) {
+        sessionStorage.removeItem('awaitingReturn');
+        enterPendingState();
+      }
+    }
   </script>
 </body>
 </html>
